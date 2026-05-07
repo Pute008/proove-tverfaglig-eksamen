@@ -33,21 +33,15 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required minlength="6"><br>
 
-            <label for="Role">Role:</label>
-            <select name="role" id="role" required>
-                <option value="" disabled selected>Select activity</option>
-                <option value="1">Elev</option>
-                <option value="2">Lærer</option>
-                <option value="3">Admin</option>
+            <label for="role">Role:</label>
+            <select id="role" name="role" required>
+                <option value="" disabled selected>Select role</option>
             </select><br>
 
             <label for="class">Class:</label>
-            <select name="class" id="classes" required>
-                <option value="" disabled selected>Select activity</option>
-                <option value="1">VG1 IT</option>
-                <option value="2">VG2 IT</option>
+            <select id="classes" name="classes" required>
+                <option value="" disabled selected>Select class</option>
             </select><br>
-            <!-- <input type="text" id="classes" name="class" required><br> -->
 
             <button type="submit">Create User</button>
         </form>

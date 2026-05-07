@@ -73,6 +73,29 @@ app.post("/newUser", async (req, res) => {
     res.json({ message: "New users created", info })
 });
 
+app.post("/newLesson", kreverAdmin, async (req, res) => {
+    try {
+        const { teacher, rooms, classes, subject, start_time, end_time } = req.body;
+        const stmt = db.prepare("INSERT INTO lessons (teacher_id, room_id, classes_id, subject_id, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)");
+        const info = stmt.run(teacher, rooms, classes, subject, start_time, end_time);
+        console.log(info)
+        res.json({ message: "New lesson created", info });
+    } catch (error) {
+        console.error("newLesson error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getSubjects', kreverAdmin, (req, res) => {
+    try {
+        const subjects = db.prepare("SELECT id, name FROM subjects").all();
+        res.json(subjects);
+    } catch (error) {
+        console.error("Error fetching subjects:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.post("/adminNewUser", kreverAdmin, async (req, res) => {
     try {
         const { firstname, lastname, email, password, role, classes } = req.body;
@@ -231,6 +254,15 @@ app.get('/getRooms', kreverAdmin, (req, res) => {
     }
 });
 
+app.get('/getRoles', kreverAdmin, (req, res) => {
+    try {
+        const roles = db.prepare("SELECT id, name FROM roles").all();
+        res.json(roles);
+    } catch (error) {
+        console.error("Error fetching roles:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 });

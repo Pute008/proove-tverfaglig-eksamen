@@ -24,7 +24,7 @@ document.getElementById("newUserForm").addEventListener("submit", async function
 
     console.log(email)
     try {
-        const response = await fetch("/adminNewUser", {
+        const response = await fetch("/newLesson", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -67,3 +67,25 @@ async function loadClasses() {
         console.error("Error loading classes:", error);
     }
 }
+
+async function loadRoles() {
+    try {
+        const response = await fetch("/getRoles");
+        if (!response.ok) throw new Error("Could not load roles");
+        const roles = await response.json();
+        const select = document.getElementById("role");
+        roles.forEach(roleItem => {
+            const option = document.createElement("option");
+            option.value = roleItem.id;
+            option.textContent = roleItem.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error loading roles:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadRoles();
+    loadClasses();
+});

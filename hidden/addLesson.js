@@ -62,8 +62,65 @@ async function loadRooms() {
     }
 }
 
+async function loadSubjects() {
+    try {
+        const response = await fetch("/getSubjects");
+        if (!response.ok) throw new Error("Could not load subjects");
+        const subjects = await response.json();
+        const select = document.getElementById("subject");
+        subjects.forEach(subject => {
+            const option = document.createElement("option");
+            option.value = subject.id;
+            option.textContent = subject.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error loading subjects:", error);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     loadTeachers();
     loadClasses();
     loadRooms();
+    loadSubjects();
+
+    document.getElementById("newUserForm").addEventListener("submit", async function addLesson(event) {
+        event.preventDefault();
+
+        const teacher = document.getElementById("teacher").value;
+        const rooms = document.getElementById("rooms").value;
+        const subject = document.getElementById("subject").value;
+        const classes = document.getElementById("classes").value;
+        const start_time = document.getElementById("start_time").value;
+        const end_time = document.getElementById("end_time").value;
+
+        try {
+            const response = await fetch("/newLesson", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    teacher,
+                    rooms,
+                    subject,
+                    classes,
+                    start_time,
+                    end_time
+                })
+                
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                alert("Error: " + (result.error || result.message));
+            } else {
+                alert(result.message);
+                document.getElementById("newUserForm").reset();
+            }
+        } catch (error) {
+            alert("Error creating lesson: " + error.message);
+        }
+    });
 });
