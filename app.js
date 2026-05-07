@@ -90,49 +90,71 @@ app.post("/adminNewUser", kreverAdmin, async (req, res) => {
 app.get('/showYourLessons', kreverInnlogging, (req, res) => {
     try {
         const userID = req.session.users.id;
-        const allActivities = db.prepare(`SELECT 
-            lessons.start_time, lessons.end_time,
-            rooms.name AS room_name,
-            subjects.name AS subject_name,
-            users.firstname,
-            users.lastname,
-            classes.name AS class_name
-            FROM lessons
-            INNER JOIN rooms ON lessons.room_id = rooms.id
-            INNER JOIN subjects ON lessons.subject_id = subjects.id
-            INNER JOIN users ON lessons.teacher_id = users.id
-            INNER JOIN classes ON lessons.classes_id = classes.id
-        WHERE users.id = ?`).all(userID);
-        res.json(allActivities);
+        const userRole = req.session.users.role;
+        let allActivities;
+
+        if (userRole === 3) {
+            // Admin - show all lessons
+            allActivities = db.prepare(`SELECT 
+                lessons.start_time, lessons.end_time,
+                rooms.name AS room_name,
+                subjects.name AS subject_name,
+                users.firstname,
+                users.lastname,
+                classes.name AS class_name
+                FROM lessons
+                INNER JOIN rooms ON lessons.room_id = rooms.id
+                INNER JOIN subjects ON lessons.subject_id = subjects.id
+                INNER JOIN users ON lessons.teacher_id = users.id
+                INNER JOIN classes ON lessons.classes_id = classes.id
+                ORDER BY lessons.start_time`).all();
+        } else if (userRole === 2) {
+            // Teacher - show lessons where teacher_id matches
+            allActivities = db.prepare(`SELECT 
+                lessons.start_time, lessons.end_time,
+                rooms.name AS room_name,
+                subjects.name AS subject_name,
+                users.firstname,
+                users.lastname,
+                classes.name AS class_name
+                FROM lessons
+                INNER JOIN rooms ON lessons.room_id = rooms.id
+                INNER JOIN subjects ON lessons.subject_id = subjects.id
+                INNER JOIN users ON lessons.teacher_id = users.id
+                INNER JOIN classes ON lessons.classes_id = classes.id
+                WHERE lessons.teacher_id = ?
+                ORDER BY lessons.start_time`).all(userID);
+        } else if (userRole === 1) {
+            // Student - show lessons for their class
+            const user = db.prepare("SELECT classes_id FROM users WHERE id = ?").get(userID);
+            if (!user || !user.classes_id) {
+                return res.json([]);
+            }
+            allActivities = db.prepare(`SELECT 
+                lessons.start_time, lessons.end_time,
+                rooms.name AS room_name,
+                subjects.name AS subject_name,
+                users.firstname,
+                users.lastname,
+                classes.name AS class_name
+                FROM lessons
+                INNER JOIN rooms ON lessons.room_id = rooms.id
+                INNER JOIN subjects ON lessons.subject_id = subjects.id
+                INNER JOIN users ON lessons.teacher_id = users.id
+                INNER JOIN classes ON lessons.classes_id = classes.id
+                WHERE lessons.classes_id = ?
+                ORDER BY lessons.start_time`).all(user.classes_id);
+        } else {
+            return res.json([]);
+        }
+
         console.log(allActivities)
+        res.json(allActivities);
     } catch (error) {
         console.error("Error after catching activities:", error);
-        res.status(500).json({ message: "Could not get activities" });
+        res.status(500).json({ message: "Could not get activities", error: error.message });
     }
 })
-
-// app.get('/showYourLessons', kreverInnlogging, (req, res) => {
-//     try {
-//         const userID = req.session.users.id;
-//         const allActivities = db.prepare(`SELECT 
-//             lessons.start_time, lessons.end_time,
-//             rooms.name AS room_name,
-//             subjects.name AS subject_name,
-//             users.firstname,
-//             users.lastname,
-//             classes.name AS class_name
-//             FROM lessons
-//             INNER JOIN rooms ON lessons.room_id = rooms.id
-//             INNER JOIN subjects ON lessons.subject_id = subjects.id
-//             INNER JOIN users ON lessons.teacher_id = users.id
-//             INNER JOIN classes ON lessons.classes_id = classes.id
-//         WHERE users.id = ?`).all(userID);
-//         res.json(allActivities);
-//     } catch (error) {
-//         console.error("Error after catching activities:", error);
-//         res.status(500).json({ message: "Could not get activities" });
-//     }
-// })
 
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
