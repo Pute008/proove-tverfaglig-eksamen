@@ -42,6 +42,7 @@ function kreverAdmin(req, res, next) {
     next();
 }
 
+// spørringer for å poste informasjon
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const users = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
@@ -86,16 +87,6 @@ app.post("/newLesson", kreverAdmin, async (req, res) => {
     }
 });
 
-app.get('/getSubjects', kreverAdmin, (req, res) => {
-    try {
-        const subjects = db.prepare("SELECT id, name FROM subjects").all();
-        res.json(subjects);
-    } catch (error) {
-        console.error("Error fetching subjects:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
 app.post("/adminNewUser", kreverAdmin, async (req, res) => {
     try {
         const { firstname, lastname, email, password, role, classes } = req.body;
@@ -110,6 +101,58 @@ app.post("/adminNewUser", kreverAdmin, async (req, res) => {
     }
 });
 
+// Spørringer for å hente informasjon
+app.get('/getSubjects', kreverAdmin, (req, res) => {
+    try {
+        const subjects = db.prepare("SELECT id, name FROM subjects").all();
+        res.json(subjects);
+    } catch (error) {
+        console.error("Error fetching subjects:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getTeachers', kreverAdmin, (req, res) => {
+    try {
+        const teachers = db.prepare("SELECT id, firstname, lastname FROM users WHERE role_id = 2").all();
+        res.json(teachers);
+    } catch (error) {
+        console.error("Error fetching teachers:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getClasses', kreverAdmin, (req, res) => {
+    try {
+        const classes = db.prepare("SELECT id, name FROM classes").all();
+        res.json(classes);
+    } catch (error) {
+        console.error("Error fetching classes:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getRooms', kreverAdmin, (req, res) => {
+    try {
+        const rooms = db.prepare("SELECT id, name FROM rooms").all();
+        res.json(rooms);
+    } catch (error) {
+        console.error("Error fetching rooms:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getRoles', kreverAdmin, (req, res) => {
+    try {
+        const roles = db.prepare("SELECT id, name FROM roles").all();
+        res.json(roles);
+    } catch (error) {
+        console.error("Error fetching roles:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// spørringer for å vise informasjon
 app.get('/showYourLessons', kreverInnlogging, (req, res) => {
     try {
         const userID = req.session.users.id;
@@ -203,10 +246,11 @@ app.get('/userInfo', kreverInnlogging, (req, res) => {
     }
 })
 
-app.get('/info', kreverInnlogging, (req, res) => {
-    res.sendFile(__dirname + "/hidden/info.html");
-})
+// app.get('/info', kreverInnlogging, (req, res) => {
+//     res.sendFile(__dirname + "/hidden/info.html");
+// })
 
+// ruter som sender deg til hidden folderen
 app.get('/addPerson', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.html");
 })
@@ -215,7 +259,7 @@ app.get('/addLesson', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addLesson.html");
 })
 
-// kaller på js filen
+// ruter som bruker js fra hidden
 app.get('/addPerson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.js");
 })
@@ -224,45 +268,6 @@ app.get('/addLesson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addLesson.js");
 })
 
-app.get('/getTeachers', kreverAdmin, (req, res) => {
-    try {
-        const teachers = db.prepare("SELECT id, firstname, lastname FROM users WHERE role_id = 2").all();
-        res.json(teachers);
-    } catch (error) {
-        console.error("Error fetching teachers:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/getClasses', kreverAdmin, (req, res) => {
-    try {
-        const classes = db.prepare("SELECT id, name FROM classes").all();
-        res.json(classes);
-    } catch (error) {
-        console.error("Error fetching classes:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/getRooms', kreverAdmin, (req, res) => {
-    try {
-        const rooms = db.prepare("SELECT id, name FROM rooms").all();
-        res.json(rooms);
-    } catch (error) {
-        console.error("Error fetching rooms:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/getRoles', kreverAdmin, (req, res) => {
-    try {
-        const roles = db.prepare("SELECT id, name FROM roles").all();
-        res.json(roles);
-    } catch (error) {
-        console.error("Error fetching roles:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 });
