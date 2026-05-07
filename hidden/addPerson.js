@@ -24,7 +24,7 @@ document.getElementById("newUserForm").addEventListener("submit", async function
 
     console.log(email)
     try {
-        const response = await fetch("/newLesson", {
+        const response = await fetch("/adminNewUser", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
