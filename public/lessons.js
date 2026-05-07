@@ -11,10 +11,10 @@ async function logout() {
     }
 }
 
-async function showClasses () {
-    const tabellBody = document.querySelector("#classList");
+async function showLessons () {
+    const tabellBody = document.querySelector("#lessonsList");
     try {
-        const response = await fetch("/showYourClasses")
+        const response = await fetch("/showYourLessons")
         if (!response.ok) {
             throw new Error("Could not get the classes. Are you logged in?");
         }
@@ -26,29 +26,28 @@ async function showClasses () {
             rad.classList.add('class');
 
             const title = document.createElement("h1");
-            title.textContent = classItem.title;
+            title.textContent = "Subject: " + classItem.subject_name;
             rad.appendChild(title);
 
-            const notes = document.createElement("p");
-            notes.textContent = "Notes: " + classItem.notes;
-            rad.appendChild(notes);
-
             const fullName = document.createElement("p");
-            fullName.textContent = `Instructor: ${classItem.firstname} ${classItem.lastname}`;
+            fullName.textContent = `Teacher: ${classItem.firstname} ${classItem.lastname}`;
             rad.appendChild(fullName);
 
+            const room = document.createElement("p");
+            room.textContent = "Room: " + classItem.room_name;
+            rad.appendChild(room);
+
+            const classes = document.createElement("p");
+            classes.textContent = "Class: " + classItem.class_name;
+            rad.appendChild(classes);
+
             const maxParticipants = document.createElement("p")
-            maxParticipants.textContent = "Max Participants: " + classItem.maxParticipants;
+            maxParticipants.textContent = "Start time: " + classItem.start_time;
             rad.appendChild(maxParticipants);
 
             const timeMinutes = document.createElement("p")
-            timeMinutes.textContent = "Duration (minutes): " + classItem.timeMinutes;
+            timeMinutes.textContent = "End time: " + classItem.end_time;
             rad.appendChild(timeMinutes);
-
-            const button = document.createElement("button");
-            button.textContent = "Register as Activity";
-            button.onclick = () => registerClassAsActivity(classItem);
-            rad.appendChild(button);
 
             tabellBody.appendChild(rad);
         });
@@ -58,4 +57,4 @@ async function showClasses () {
     }
 }
 
-document.addEventListener("DOMContentLoaded", showClasses);
+document.addEventListener("DOMContentLoaded", showLessons);

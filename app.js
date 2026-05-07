@@ -87,18 +87,52 @@ app.post("/adminNewUser", kreverAdmin, async (req, res) => {
     }
 });
 
-app.get('/showYourClasses', kreverInnlogging, (req, res) => {
+app.get('/showYourLessons', kreverInnlogging, (req, res) => {
     try {
-        // henter user id fra session
         const userID = req.session.users.id;
-        const allActivities = db.prepare(`SELECT * FROM activity WHERE userID = ?`).all(userID);
+        const allActivities = db.prepare(`SELECT 
+            lessons.start_time, lessons.end_time,
+            rooms.name AS room_name,
+            subjects.name AS subject_name,
+            users.firstname,
+            users.lastname,
+            classes.name AS class_name
+            FROM lessons
+            INNER JOIN rooms ON lessons.room_id = rooms.id
+            INNER JOIN subjects ON lessons.subject_id = subjects.id
+            INNER JOIN users ON lessons.teacher_id = users.id
+            INNER JOIN classes ON lessons.classes_id = classes.id
+        WHERE users.id = ?`).all(userID);
         res.json(allActivities);
-    // hvis denne koden ikke fungerer kjører den denne erroren
+        console.log(allActivities)
     } catch (error) {
         console.error("Error after catching activities:", error);
         res.status(500).json({ message: "Could not get activities" });
     }
 })
+
+// app.get('/showYourLessons', kreverInnlogging, (req, res) => {
+//     try {
+//         const userID = req.session.users.id;
+//         const allActivities = db.prepare(`SELECT 
+//             lessons.start_time, lessons.end_time,
+//             rooms.name AS room_name,
+//             subjects.name AS subject_name,
+//             users.firstname,
+//             users.lastname,
+//             classes.name AS class_name
+//             FROM lessons
+//             INNER JOIN rooms ON lessons.room_id = rooms.id
+//             INNER JOIN subjects ON lessons.subject_id = subjects.id
+//             INNER JOIN users ON lessons.teacher_id = users.id
+//             INNER JOIN classes ON lessons.classes_id = classes.id
+//         WHERE users.id = ?`).all(userID);
+//         res.json(allActivities);
+//     } catch (error) {
+//         console.error("Error after catching activities:", error);
+//         res.status(500).json({ message: "Could not get activities" });
+//     }
+// })
 
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
