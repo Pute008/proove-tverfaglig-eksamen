@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
-    <script src="home.js" defer></script>
+    <script src="addPerson.js" defer></script>
 </head>
 <body>
     <header><h1>Add Person</h1></header>
@@ -36,13 +36,18 @@
             <label for="Role">Role:</label>
             <select name="role" id="role" required>
                 <option value="" disabled selected>Select activity</option>
-                <option value="Elev">Elev</option>
-                <option value="Lærer">Lærer</option>
-                <option value="Admin">Admin</option>
+                <option value="1">Elev</option>
+                <option value="2">Lærer</option>
+                <option value="3">Admin</option>
             </select><br>
 
             <label for="class">Class:</label>
-            <input type="text" id="classes" name="class" required><br>
+            <select name="class" id="role" required>
+                <option value="" disabled selected>Select activity</option>
+                <option value="1">VG1 IT</option>
+                <option value="2">VG2 IT</option>
+            </select><br>
+            <!-- <input type="text" id="classes" name="class" required><br> -->
 
             <p id="demo"></p>
 

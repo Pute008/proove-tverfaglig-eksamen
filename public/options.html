@@ -19,10 +19,27 @@
         </ul>
     </menu>
     <main >
-        <div>
-            <p><a href="addPerson.html">Add Person</a></p>
+        <div id="adminOptions">
+            <!-- Admin-only content will be added here by JavaScript -->
         </div>
     </main>
+    <script>
+        // Show Add Person link only for admins
+        async function loadAdminOptions() {
+            try {
+                const response = await fetch("/userInfo");
+                if (response.ok) {
+                    const user = await response.json();
+                    if (user.role_name === "Admin" || user.role_id === 3) {
+                        document.getElementById("adminOptions").innerHTML = '<p><a href="/addPerson">Add Person</a></p>';
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading admin options:", error);
+            }
+        }
+        loadAdminOptions();
+    </script>
     <footer>
         <button onclick="logout()">Logout</button>
     </footer>

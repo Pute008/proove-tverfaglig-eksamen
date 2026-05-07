@@ -1,4 +1,4 @@
-require('dotenv').config
+// require('dotenv').config
 const express = require("express");
 const session = require("express-session");
 const app = express();
@@ -19,7 +19,8 @@ const port = 3000
 
 app.use(
     session({
-        secret: process.env.SESSION_SECRET,
+        // secret: process.env.SESSION_SECRET,
+        secret: "hemmeligNøkkel",
         resave: false,
         saveUninitialized: false,
         cookie: { secure: false }
@@ -34,7 +35,7 @@ function kreverInnlogging(req, res, next) {
 }
 
 function kreverAdmin(req, res, next) {
-    if(!req.session.users.role === "admin") {
+    if(req.session.users.role !== 3) {  // 3 is the admin role_id
         console.warn("You have no access")
         return res.redirect('/home.html');
     }
@@ -72,6 +73,20 @@ app.post("/newUser", async (req, res) => {
     res.json({ message: "New users created", info })
 });
 
+app.post("/adminNewUser", kreverAdmin, async (req, res) => {
+    try {
+        const { firstname, lastname, email, password } = req.body;
+        const saltRounds = 10;
+        const hashPassword = await bcrypt.hash(password, saltRounds);
+        const stmt = db.prepare("INSERT INTO users (firstname, lastname, email, password) VALUES (?, ?, ?, ?)");
+        const info = stmt.run(firstname, lastname, email, hashPassword);
+        res.json({ message: "New users created", info });
+    } catch (error) {
+        console.error("adminNewUser error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
     try {
@@ -102,6 +117,11 @@ app.get('/info', kreverInnlogging, (req, res) => {
 
 app.get('/addPerson', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.html");
+})
+
+// kaller på js filen
+app.get('/addPerson.js', kreverAdmin, (req, res) => {
+    res.sendFile(__dirname + "/hidden/addPerson.js");
 })
 
 app.listen(port, () => {
