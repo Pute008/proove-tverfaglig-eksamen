@@ -211,6 +211,7 @@ app.get('/showYourLessons', kreverInnlogging, (req, res) => {
                 WHERE lessons.classes_id = ?
                 ORDER BY lessons.start_time`).all(user.classes_id);
         } else {
+            // hvis du ikke har en rolle, vil ingen ting vises, den sender et tomt json format
             return res.json([]);
         }
 
@@ -245,10 +246,6 @@ app.get('/userInfo', kreverInnlogging, (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 })
-
-// app.get('/info', kreverInnlogging, (req, res) => {
-//     res.sendFile(__dirname + "/hidden/info.html");
-// })
 
 // ruter som sender deg til hidden folderen
 app.get('/addPerson', kreverAdmin, (req, res) => {
