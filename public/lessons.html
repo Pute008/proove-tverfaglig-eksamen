@@ -20,7 +20,10 @@
         </ul>
     </menu>
     <main >
-        <h2><a href="/addLesson">Add lessons</a></h2>
+        <div id="adminOptions">
+            
+        </div>
+
         <div id="lessonsList">
 
         </div>
@@ -30,3 +33,21 @@
     </footer>
 </body>
 </html>
+
+<script>
+    // Show Add Person link only for admins
+    async function loadAdminOptions() {
+        try {
+            const response = await fetch("/userInfo");
+            if (response.ok) {
+                const user = await response.json();
+                if (user.role_name === "Admin" || user.role_id === 3) {
+                    document.getElementById("adminOptions").innerHTML = '<h2><a href="/addLesson">Add lessons</a></h2>';
+                }
+            }
+        } catch (error) {
+            console.error("Error loading admin options:", error);
+        }
+    }
+    loadAdminOptions();
+</script>

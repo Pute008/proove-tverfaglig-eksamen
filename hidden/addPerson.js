@@ -50,3 +50,20 @@ document.getElementById("newUserForm").addEventListener("submit", async function
         alert("Error creating user: " + error.message);
     }
 })
+
+async function loadClasses() {
+    try {
+        const response = await fetch("/getClasses");
+        if (!response.ok) throw new Error("Could not load classes");
+        const classes = await response.json();
+        const select = document.getElementById("classes");
+        classes.forEach(classItem => {
+            const option = document.createElement("option");
+            option.value = classItem.id;
+            option.textContent = classItem.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error loading classes:", error);
+    }
+}

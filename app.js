@@ -201,6 +201,36 @@ app.get('/addLesson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addLesson.js");
 })
 
+app.get('/getTeachers', kreverAdmin, (req, res) => {
+    try {
+        const teachers = db.prepare("SELECT id, firstname, lastname FROM users WHERE role_id = 2").all();
+        res.json(teachers);
+    } catch (error) {
+        console.error("Error fetching teachers:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getClasses', kreverAdmin, (req, res) => {
+    try {
+        const classes = db.prepare("SELECT id, name FROM classes").all();
+        res.json(classes);
+    } catch (error) {
+        console.error("Error fetching classes:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/getRooms', kreverAdmin, (req, res) => {
+    try {
+        const rooms = db.prepare("SELECT id, name FROM rooms").all();
+        res.json(rooms);
+    } catch (error) {
+        console.error("Error fetching rooms:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 });
