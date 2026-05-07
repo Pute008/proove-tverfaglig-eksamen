@@ -20,6 +20,7 @@ async function userInfo() {
 
         const email = document.createElement("p");
         email.textContent = `Email: ${user.email}`;
+        console.log(email)
         card.appendChild(email);
 
         const roles = document.createElement("p");

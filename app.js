@@ -73,16 +73,26 @@ app.post("/newUser", async (req, res) => {
 
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
-    const userRole = req.session.users.role
-    const user = db.prepare(`SELECT 
-        classes.name AS class_name, 
-        users.*, 
-        roles.name AS role_name
-        FROM classes
-        INNER JOIN users ON classes.id = users.classes_id
-        INNER JOIN roles ON users.role_id = roles.id
-        WHERE users.id = ?`).get(userID);
-    res.json(user);
+    try {
+        const user = db.prepare(`
+            SELECT 
+                classes.name AS class_name, 
+                users.*, 
+                roles.name AS role_name
+            FROM users
+            LEFT JOIN classes ON classes.id = users.classes_id
+            LEFT JOIN roles ON users.role_id = roles.id
+            WHERE users.id = ?
+        `).get(userID);
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error("userInfo error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
 })
 
 app.get('/info', kreverInnlogging, (req, res) => {
