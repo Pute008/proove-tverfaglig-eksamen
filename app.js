@@ -32,6 +32,14 @@ function kreverInnlogging(req, res, next) {
     next();
 }
 
+function kreverAdmin(req, res, next) {
+    if(!req.session.users.role === "admin") {
+        console.warn("You have no access")
+        return res.redirect('/home.html');
+    }
+    next();
+}
+
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const users = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
@@ -62,6 +70,28 @@ app.post("/newUser", async (req, res) => {
     const info = stmt.run(firstname, lastname, email, hashPassword);
     res.json({ message: "New users created", info })
 });
+
+app.get('/userInfo', kreverInnlogging, (req, res) => {
+    const userID = req.session.users.id;
+    const userRole = req.session.users.role
+    const user = db.prepare(`SELECT 
+        classes.name AS class_name, 
+        users.*, 
+        roles.name AS role_name
+        FROM classes
+        INNER JOIN users ON classes.id = users.classes_id
+        INNER JOIN roles ON users.role_id = roles.id
+        WHERE users.id = ?`).get(userID);
+    res.json(user);
+})
+
+app.get('/info', kreverInnlogging, (req, res) => {
+    res.sendFile(__dirname + "/hidden/info.html");
+})
+
+app.get('/addPerson', kreverAdmin, (req, res) => {
+    res.sendFile(__dirname + "/hidden/addPerson.html");
+})
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
