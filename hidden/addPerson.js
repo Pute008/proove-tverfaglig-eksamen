@@ -1,3 +1,16 @@
+async function logout() {
+    const response = await fetch("/logout", {
+        method: "POST"
+    });
+
+    if (response.ok) {
+        alert("You are logged out.");
+        window.location.href = "/";
+    } else {
+        alert("Something went wrong");
+    }
+}
+
 document.getElementById("newUserForm").addEventListener("submit", async function addPerson(event) {
     event.preventDefault();
 
@@ -6,8 +19,8 @@ document.getElementById("newUserForm").addEventListener("submit", async function
     const lastname = document.getElementById("lastname").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    // const role = document.getElementById("role").value;
-    // const classes = document.getElementById("classes").value
+    const role = document.getElementById("role").value;
+    const classes = document.getElementById("classes").value
 
     console.log(email)
     try {
@@ -20,9 +33,9 @@ document.getElementById("newUserForm").addEventListener("submit", async function
                 firstname,
                 lastname,
                 email,
-                password
-                // role,
-                // classes
+                password,
+                role,
+                classes
             })
             
         });

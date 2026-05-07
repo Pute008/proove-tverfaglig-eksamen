@@ -75,17 +75,30 @@ app.post("/newUser", async (req, res) => {
 
 app.post("/adminNewUser", kreverAdmin, async (req, res) => {
     try {
-        const { firstname, lastname, email, password } = req.body;
+        const { firstname, lastname, email, password, role, classes } = req.body;
         const saltRounds = 10;
         const hashPassword = await bcrypt.hash(password, saltRounds);
-        const stmt = db.prepare("INSERT INTO users (firstname, lastname, email, password) VALUES (?, ?, ?, ?)");
-        const info = stmt.run(firstname, lastname, email, hashPassword);
+        const stmt = db.prepare("INSERT INTO users (firstname, lastname, email, password, role_id, classes_id) VALUES (?, ?, ?, ?, ?, ?)");
+        const info = stmt.run(firstname, lastname, email, hashPassword, role, classes);
         res.json({ message: "New users created", info });
     } catch (error) {
         console.error("adminNewUser error:", error);
         res.status(500).json({ error: error.message });
     }
 });
+
+app.get('/showYourClasses', kreverInnlogging, (req, res) => {
+    try {
+        // henter user id fra session
+        const userID = req.session.users.id;
+        const allActivities = db.prepare(`SELECT * FROM activity WHERE userID = ?`).all(userID);
+        res.json(allActivities);
+    // hvis denne koden ikke fungerer kjører den denne erroren
+    } catch (error) {
+        console.error("Error after catching activities:", error);
+        res.status(500).json({ message: "Could not get activities" });
+    }
+})
 
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
@@ -119,9 +132,17 @@ app.get('/addPerson', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.html");
 })
 
+app.get('/addLesson', kreverAdmin, (req, res) => {
+    res.sendFile(__dirname + "/hidden/addLesson.html");
+})
+
 // kaller på js filen
 app.get('/addPerson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.js");
+})
+
+app.get('/addLesson.js', kreverAdmin, (req, res) => {
+    res.sendFile(__dirname + "/hidden/addLesson.js");
 })
 
 app.listen(port, () => {
