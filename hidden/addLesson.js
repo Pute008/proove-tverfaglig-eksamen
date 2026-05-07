@@ -11,6 +11,7 @@ async function logout() {
     }
 }
 
+// for alle dropdown valgene
 async function loadTeachers() {
     try {
         const response = await fetch("/getTeachers");
@@ -85,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRooms();
     loadSubjects();
 
-    document.getElementById("newUserForm").addEventListener("submit", async function addLesson(event) {
+    document.getElementById("newLessonForm").addEventListener("submit", async function addLesson(event) {
         event.preventDefault();
 
         const teacher = document.getElementById("teacher").value;
@@ -117,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Error: " + (result.error || result.message));
             } else {
                 alert(result.message);
-                document.getElementById("newUserForm").reset();
+                document.getElementById("newLessonForm").reset();
             }
         } catch (error) {
             alert("Error creating lesson: " + error.message);
