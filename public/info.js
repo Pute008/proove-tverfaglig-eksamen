@@ -44,6 +44,10 @@ async function userInfo() {
         classes.textContent = `Class: ${user.class_name}`;
         card.appendChild(classes);
 
+        const computer = document.createElement("p");
+        computer.textContent = `Computer: ${user.modell_name} ${user.service_tag}`;
+        card.appendChild(computer)
+
         const userId = document.createElement("p");
         userId.textContent = `User ID: ${user.id}`;
         card.appendChild(userId);

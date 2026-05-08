@@ -22,6 +22,10 @@
         <div id="adminOptions">
             <!-- Admin-only content will be added here by JavaScript -->
         </div>
+
+        <div id="ITOptions">
+
+        </div>
     </main>
 
     <footer>
@@ -39,6 +43,9 @@
                 const user = await response.json();
                 if (user.role_name === "Admin" || user.role_id === 3) {
                     document.getElementById("adminOptions").innerHTML = '<p><a href="/addPerson">Add Person</a></p>';
+                    document.getElementById("ITOptions").innerHTML = '<p><a href="/userComputerInfo">See Users Computers</a></p>';
+                } else if (user.role_name === "IT-arbeider" || user.role_id === 5) {
+                    document.getElementById("ITOptions").innerHTML = '<p><a href="/userComputerInfo">See Users Computers</a></p>';
                 }
             }
         } catch (error) {

@@ -42,6 +42,22 @@ function kreverAdmin(req, res, next) {
     next();
 }
 
+// function kreverITRolle(req, res, next) {
+//     if(req.session.users.role !== 5) {
+//         console.warn("You have no access")
+//         return res.redirect('/home.html');
+//     }
+//     next();
+// }
+
+function kreverAdminOrIT(req, res, next) {
+    if(req.session.users.role !== 3 && req.session.users.role !== 5) {  // 3 = admin, 5 = IT
+        console.warn("You have no access")
+        return res.redirect('/home.html');
+    }
+    next();
+}
+
 // spørringer for å poste informasjon
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
@@ -152,6 +168,19 @@ app.get('/getRoles', kreverAdmin, (req, res) => {
     }
 });
 
+app.get('/getComputers', kreverAdmin, (req, res) => {
+    try {
+        const roles = db.prepare(`SELECT computer.id, computer.service_tag, computer.modell, computer_modell.id, computer_modell.modell_name
+            FROM computer
+            INNER JOIN computer_modell
+            ON computer.modell = computer_modell.id`).all();
+        res.json(roles);
+    } catch (error) {
+        console.error("Error fetching roles:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // spørringer for å vise informasjon
 app.get('/showYourLessons', kreverInnlogging, (req, res) => {
     try {
@@ -223,6 +252,33 @@ app.get('/showYourLessons', kreverInnlogging, (req, res) => {
     }
 })
 
+app.get('/showIT-Info', kreverAdminOrIT, (req, res) => {
+    try {
+        const users = db.prepare(`
+            SELECT 
+                classes.name AS class_name, 
+                users.firstname, users.lastname,
+                roles.name AS role_name,
+                computer_modell.modell_name,
+                computer.service_tag,
+                users.id
+            FROM users
+            LEFT JOIN classes ON classes.id = users.classes_id
+            LEFT JOIN roles ON users.role_id = roles.id
+            LEFT JOIN computer ON computer.users_id = users.id
+            LEFT JOIN computer_modell ON computer.modell = computer_modell.id;
+        `).all();
+
+        if (!users) {
+            return res.status(404).json({ error: "No users found" });
+        }
+        res.json(users);
+    } catch (error) {
+        console.error("showIT-Info error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+})
+
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
     try {
@@ -230,11 +286,15 @@ app.get('/userInfo', kreverInnlogging, (req, res) => {
             SELECT 
                 classes.name AS class_name, 
                 users.*, 
-                roles.name AS role_name
+                roles.name AS role_name,
+                computer_modell.modell_name,
+                computer.service_tag
             FROM users
             LEFT JOIN classes ON classes.id = users.classes_id
             LEFT JOIN roles ON users.role_id = roles.id
-            WHERE users.id = ?
+            LEFT JOIN computer ON computer.users_id = users.id
+            LEFT JOIN computer_modell ON computer.modell = computer_modell.id
+            WHERE users.id = ?;
         `).get(userID);
 
         if (!user) {
@@ -256,6 +316,10 @@ app.get('/addLesson', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addLesson.html");
 })
 
+app.get('/userComputerInfo', kreverAdminOrIT, (req, res) => {
+    res.sendFile(__dirname + "/hidden/userComputerInfo.html");
+})
+
 // ruter som bruker js fra hidden
 app.get('/addPerson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.js");
@@ -263,6 +327,10 @@ app.get('/addPerson.js', kreverAdmin, (req, res) => {
 
 app.get('/addLesson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addLesson.js");
+})
+
+app.get('/userComputerInfo.js', kreverAdminOrIT, (req, res) => {
+    res.sendFile(__dirname + "/hidden/userComputerInfo.js");
 })
 
 app.listen(port, () => {
