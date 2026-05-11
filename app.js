@@ -42,14 +42,6 @@ function kreverAdmin(req, res, next) {
     next();
 }
 
-// function kreverITRolle(req, res, next) {
-//     if(req.session.users.role !== 5) {
-//         console.warn("You have no access")
-//         return res.redirect('/home.html');
-//     }
-//     next();
-// }
-
 function kreverAdminOrIT(req, res, next) {
     if(req.session.users.role !== 3 && req.session.users.role !== 5) {  // 3 = admin, 5 = IT
         console.warn("You have no access")
@@ -105,11 +97,11 @@ app.post("/newLesson", kreverAdmin, async (req, res) => {
 
 app.post("/adminNewUser", kreverAdmin, async (req, res) => {
     try {
-        const { firstname, lastname, email, password, role, classes } = req.body;
+        const { firstname, lastname, email, password, username, tlf, role, classes } = req.body;
         const saltRounds = 10;
         const hashPassword = await bcrypt.hash(password, saltRounds);
-        const stmt = db.prepare("INSERT INTO users (firstname, lastname, email, password, role_id, classes_id) VALUES (?, ?, ?, ?, ?, ?)");
-        const info = stmt.run(firstname, lastname, email, hashPassword, role, classes);
+        const stmt = db.prepare("INSERT INTO users (firstname, lastname, email, password, username, tlf, role_id, classes_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        const info = stmt.run(firstname, lastname, email, hashPassword, username, tlf, role, classes);
         res.json({ message: "New users created", info });
     } catch (error) {
         console.error("adminNewUser error:", error);
@@ -177,6 +169,40 @@ app.get('/getComputers', kreverAdmin, (req, res) => {
         res.json(roles);
     } catch (error) {
         console.error("Error fetching roles:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// lager et brukernavn, tar fornavnet og etternavnet
+app.get('/generateUsername', kreverAdmin, (req, res) => {
+    try {
+        const { firstname, lastname } = req.query;
+        if (!firstname || !lastname) {
+            return res.status(400).json({ error: "firstname and lastname required" });
+        }
+
+        // Lag grunnlag for brukernavn: fornavn.etternavn
+        const baseUsername = `${firstname.toLowerCase()}.${lastname.toLowerCase()}`.replace(/\s+/g, '');
+        
+        // Sjekk om brukernavnet finnes allerede
+        let username = baseUsername;
+        let counter = 1;
+        
+        // hvis brukernavnet eksisterer vil den legge til et tall i brukernavnet
+        while (true) {
+            // sjekker om noen har samme brukernavn
+            const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+            if (!existing) {
+                // Brukernavnet er ledig
+                res.json({ username });
+                return;
+            }
+            // Hvis det finnes, legg til nummer
+            username = `${baseUsername}${counter}`;
+            counter++;
+        }
+    } catch (error) {
+        console.error("Error generating username:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -279,6 +305,33 @@ app.get('/showIT-Info', kreverAdminOrIT, (req, res) => {
     }
 })
 
+app.get('/showInfoAdmin', kreverAdmin, (req, res) => {
+    try {
+        const users = db.prepare(`
+            SELECT 
+                classes.name AS class_name, 
+                users.*,
+                roles.name AS role_name,
+                computer_modell.modell_name,
+                computer.service_tag,
+                users.id
+            FROM users
+            LEFT JOIN classes ON classes.id = users.classes_id
+            LEFT JOIN roles ON users.role_id = roles.id
+            LEFT JOIN computer ON computer.users_id = users.id
+            LEFT JOIN computer_modell ON computer.modell = computer_modell.id;
+        `).all();
+
+        if (!users) {
+            return res.status(404).json({ error: "No users found" });
+        }
+        res.json(users);
+    } catch (error) {
+        console.error("showIT-Info error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+})
+
 app.get('/userInfo', kreverInnlogging, (req, res) => {
     const userID = req.session.users.id;
     try {
@@ -320,6 +373,10 @@ app.get('/userComputerInfo', kreverAdminOrIT, (req, res) => {
     res.sendFile(__dirname + "/hidden/userComputerInfo.html");
 })
 
+app.get('/adminUsersInfo', kreverAdmin, (req, res) => {
+    res.sendFile(__dirname + "/hidden/adminUsersInfo.html");
+})
+
 // ruter som bruker js fra hidden
 app.get('/addPerson.js', kreverAdmin, (req, res) => {
     res.sendFile(__dirname + "/hidden/addPerson.js");
@@ -331,6 +388,10 @@ app.get('/addLesson.js', kreverAdmin, (req, res) => {
 
 app.get('/userComputerInfo.js', kreverAdminOrIT, (req, res) => {
     res.sendFile(__dirname + "/hidden/userComputerInfo.js");
+})
+
+app.get('/adminUsersInfo.js', kreverAdmin, (req, res) => {
+    res.sendFile(__dirname + "/hidden/adminUsersInfo.js");
 })
 
 app.listen(port, () => {
